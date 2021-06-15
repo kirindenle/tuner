@@ -1,5 +1,7 @@
 @echo off
 
+IF NOT EXIST build mkdir build
+
 SETLOCAL
 if "%~1"=="" (
     set Name="game1"
