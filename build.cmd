@@ -1,6 +1,9 @@
 @echo off
 
 IF NOT EXIST build mkdir build
+IF NOT EXIST build\SDL2.dll copy external\SDL2-2.0.12\lib\x64\SDL2.dll build\SDL2.dll
+IF NOT EXIST build\SDL2_ttf.dll copy external\SDL2_ttf-2.0.15\lib\x64\SDL2_ttf.dll build\SDL2_ttf.dll
+IF NOT EXIST build\libfreetype-6.dll copy external\SDL2_ttf-2.0.15\lib\x64\libfreetype-6.dll build\libfreetype-6.dll
 
 SETLOCAL
 if "%~1"=="" (
