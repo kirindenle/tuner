@@ -30,21 +30,18 @@ class ExitScopeHelp {
 #define defer const auto& CONCAT(defer__, __LINE__) = ExitScopeHelp() + [&]()
 
 // ************************************ START ************************************
-
-
-
-
 #include <assert.h>
 #include "array.h"
 
 #include "SDL.h"
 #include "SDL_ttf.h"
-#include <stdio.h>
-#include <thread>
+// #include <stdio.h>
+// #include <thread>
+#include <chrono>
 #include <atomic>
 #include <string>
-#include <algorithm>
-#include <cmath>
+// #include <algorithm>
+// #include <cmath>
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -62,6 +59,7 @@ struct Devices {
     char const* play_device   = NULL;
     char const* record_device = NULL;
 };
+
 bool get_play_and_record_devices(Devices* devices_to_fill, int n_args, char const* const* args);
 
 struct Record {
@@ -333,6 +331,8 @@ float Get16bitAudioSample(u8 const* bytebuffer, SDL_AudioFormat format)
 {
     u16 val= 0;
 
+    // assert(format == AUDIO_S16);
+
     if(SDL_AUDIO_ISLITTLEENDIAN(format)) val = (uint16_t)bytebuffer[0] | ((uint16_t)bytebuffer[1] << 8);
     else                                 val = ((uint16_t)bytebuffer[0] << 8) | (uint16_t)bytebuffer[1];
 
@@ -536,13 +536,13 @@ void testing_find_frequency_by_zcr(Context * context, Array<float> const& audio,
                         draw_vertical_line(context, 0x00FF00FF, x_left / audio.size);
                         draw_vertical_line(context, 0x0000FFFF, x_right / audio.size);
 
-                        snprintf(text_buffer, 100, "f(%.1e) = %.1e", x_left, y_left);          draw_text(context, text_buffer, 0, 0);
-                        snprintf(text_buffer, 100, "f(%.1e) = %.1e | %.1e | %.1e", x_right, y_right, fabs(y_left - y_right), fabs(y_left - y_right) - tolerance);        draw_text(context, text_buffer, 0, 36);
-                        snprintf(text_buffer, 100, "amp = %.1e, int = %d, step = %f", amplitude, interval, step); draw_text(context, text_buffer, 0, 72);
-                        snprintf(text_buffer, 100, "prev from %f to %f", prev_zero_exact, prev_zero_exact + step * (interval-1)); draw_text(context, text_buffer, 0, 108);
-                        snprintf(text_buffer, 100, "curr from %f to %f", current_zero_exact, current_zero_exact + step * (interval-1)); draw_text(context, text_buffer, 0, 144);
-                        snprintf(text_buffer, 100, "prev_zero = %d, prev_zero_exact = %f", prev_zero, prev_zero_exact); draw_text(context, text_buffer, 0, 180);
-                        snprintf(text_buffer, 100, "current_zero = %d, current_zero_exact = %f", it_index, current_zero_exact); draw_text(context, text_buffer, 0, 216);
+                        snprintf(text_buffer, 100, "f(%.1e) = %.1e", x_left, y_left);                                                                             draw_text(context, text_buffer, 0, 0);
+                        snprintf(text_buffer, 100, "f(%.1e) = %.1e | %.1e | %.1e", x_right, y_right, fabs(y_left - y_right), fabs(y_left - y_right) - tolerance); draw_text(context, text_buffer, 0, 36);
+                        snprintf(text_buffer, 100, "amp = %.1e, int = %d, step = %f", amplitude, interval, step);                                                 draw_text(context, text_buffer, 0, 72);
+                        snprintf(text_buffer, 100, "prev from %f to %f", prev_zero_exact, prev_zero_exact + step * (interval-1));                                 draw_text(context, text_buffer, 0, 108);
+                        snprintf(text_buffer, 100, "curr from %f to %f", current_zero_exact, current_zero_exact + step * (interval-1));                           draw_text(context, text_buffer, 0, 144);
+                        snprintf(text_buffer, 100, "prev_zero = %d, prev_zero_exact = %f", prev_zero, prev_zero_exact);                                           draw_text(context, text_buffer, 0, 180);
+                        snprintf(text_buffer, 100, "current_zero = %d, current_zero_exact = %f", it_index, current_zero_exact);                                   draw_text(context, text_buffer, 0, 216);
 
                         SDL_RenderPresent(context->renderer);
                         SDL_Keycode key;
@@ -574,7 +574,7 @@ void testing_find_frequency_by_zcr(Context * context, Array<float> const& audio,
             if (bad_zero_cross) continue;
 
 
-            snprintf(text_buffer, 100, "adding intexrval %d", interval);   draw_text(context, text_buffer, 0, context->win_h/2 - 18);
+            snprintf(text_buffer, 100, "adding intexrval %d", interval); draw_text(context, text_buffer, 0, context->win_h/2 - 18);
             SDL_RenderPresent(context->renderer);
             if (wait_until_press()) exit(0);
 
