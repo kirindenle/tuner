@@ -41,7 +41,7 @@ class ExitScopeHelp {
 #include <atomic>
 #include <string>
 // #include <algorithm>
-// #include <cmath>
+#include <cmath>
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -704,6 +704,9 @@ bool wait_until_press(SDL_Keycode * pressed_key) {
 // size bytes
 // [int][data]
 std::string save_my_wav(Audio_Wav const& wav_raw, int start_idx, int end_idx) {
+    assert(end_idx < wav_raw.wav.size);
+    assert(start_idx >= 0);
+    if (end_idx <= start_idx) return "";
     #define SAVE_RECORD_NAME "record"
     SDL_RWops *file = NULL;
     std::string filename = "";
@@ -721,8 +724,9 @@ std::string save_my_wav(Audio_Wav const& wav_raw, int start_idx, int end_idx) {
         defer {SDL_RWclose(file);};
         if (!file) {SDL_Log("Error opening file to write %s: %s", filename.c_str(), SDL_GetError()); return "";}
 
-        size_t writen = SDL_RWwrite(file, &wav_raw.wav.size, sizeof(int), 1);
-        if (writen != 0) writen = SDL_RWwrite(file, wav_raw.wav.data, wav_raw.wav.size, 1);
+        int record_size = end_idx - start_idx;
+        size_t writen = SDL_RWwrite(file, &record_size, sizeof(int), 1);
+        if (writen != 0) writen = SDL_RWwrite(file, wav_raw.wav.data + start_idx, record_size, 1);
         if (writen == 0) {SDL_Log("Error writing to file %s: %s", filename.c_str(), SDL_GetError()); return "";}
 
         return filename;
@@ -754,10 +758,10 @@ bool selection_mode(Context * context, Array<float> * audio, Audio_Wav * wav_raw
 
                     if (wav_raw) {
                         int raw_bytesize = SDL_AUDIO_BITSIZE(wav_raw->spec.format) / 8;
-                        int start_idx = start_audio_idx * raw_bytesize;
-                        int end_idx   = end_audio_idx   * raw_bytesize;
+                        int start_raw_idx = start_audio_idx * raw_bytesize;
+                        int end_raw_idx   = end_audio_idx   * raw_bytesize;
 
-                        saved_filename = save_my_wav(*wav_raw, start_idx, end_idx);
+                        saved_filename = save_my_wav(*wav_raw, start_raw_idx, end_raw_idx);
 
                         draw_text(context, "saved record to", 0, 0);
                         draw_text(context, saved_filename.c_str() , 0, 30);

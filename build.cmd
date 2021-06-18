@@ -7,14 +7,14 @@ IF NOT EXIST build\libfreetype-6.dll copy external\SDL2_ttf-2.0.15\lib\x64\libfr
 
 SETLOCAL
 if "%~1"=="" (
-    set Name="game1"
+    set Name="tuner"
 ) else (
     set Name="%~1"
 )
 set includeSDL=external\SDL2-2.0.12\include
 set includeSDL_ttf=external\SDL2_ttf-2.0.15\include
 set includeCSTDLIB="C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt"
-set includeCRuntime="C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\include"
+set includeCRuntime="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\include"
 set includeMyLib="C:\Users\22599\projects\_mylib"
 set SDLlibs=SDL2main.lib SDL2.lib Shell32.lib SDL2_ttf.lib
 set SDLlibpath=external\SDL2-2.0.12\lib\x64

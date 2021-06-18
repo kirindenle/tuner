@@ -292,6 +292,32 @@ Note units_to_note(double units) {
     return ret;
 }
 
+void draw_bar(Context *context, double cents) {
+    float one_cent_in_pixels = context->win_w / 3.0f / 50.0f;
+    int bar_h = (int) (context->win_h / 10.0);
+    int bar_center_x = context->win_w / 2;
+    int bar_center_y = context->win_h - (int) (context->win_h / 10.0);
+    SDL_Rect total_cents_rect;
+    total_cents_rect.x = bar_center_x - (int) (50 * one_cent_in_pixels);
+    total_cents_rect.w = (int) (2 * 50 * one_cent_in_pixels);
+    total_cents_rect.h = bar_h;
+    total_cents_rect.y = bar_center_y;
+    SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255); SDL_RenderDrawRect(context->renderer, &total_cents_rect);
+    SDL_Rect cents_rect;
+    cents_rect.w = abs((int) (one_cent_in_pixels * cents));
+    cents_rect.h = total_cents_rect.h;
+    if (cents < 0) {
+        cents_rect.x = bar_center_x - cents_rect.w;
+    } else {
+        cents_rect.x = bar_center_x;
+    }
+    cents_rect.y = bar_center_y;
+    SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255); SDL_RenderFillRect(context->renderer, &cents_rect);
+    SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, 255);     SDL_RenderDrawLine(context->renderer, bar_center_x, bar_center_y - 2, bar_center_x, bar_center_y + bar_h + 2);
+    SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, 255);     SDL_RenderDrawLine(context->renderer, bar_center_x + (int) (one_cent_in_pixels * 25), bar_center_y - 2, bar_center_x + (int) (one_cent_in_pixels * 25), bar_center_y + bar_h + 2);
+    SDL_SetRenderDrawColor(context->renderer, 255, 0, 0, 255);     SDL_RenderDrawLine(context->renderer, bar_center_x - (int) (one_cent_in_pixels * 25), bar_center_y - 2, bar_center_x - (int) (one_cent_in_pixels * 25), bar_center_y + bar_h + 2);
+}
+
 void find_frequency_by_zcr(Context * context, Array<float> const& audio) {
     static int    intervals_appearences[DEFAULT_SAMPLES];
     static double intervals_sum_diff   [DEFAULT_SAMPLES];
@@ -377,6 +403,7 @@ void find_frequency_by_zcr(Context * context, Array<float> const& audio) {
     static char buffer_hz    [100];
     static char buffer_units [100];
     static char buffer_note  [100];
+    static double cents = 0.0;
     if (buffer_hz[0] == 0 || Hz < 2000) {
         double units = hz_to_units(Hz);
         Note note = units_to_note(units);
@@ -386,12 +413,17 @@ void find_frequency_by_zcr(Context * context, Array<float> const& audio) {
             SDL_snprintf(buffer_units, 100, "units=%1.2f", units);
             SDL_snprintf(buffer_note,  100, "note=%s%s%d%s%s%.1f", note.letter, (note.letter[1] == 0 ? " " : ""), note.octave, (note.cents > 0 ? "+" : "-"), (abs(note.cents) < 10 ? "0" : ""), abs(note.cents));
             static double prev_Hz = 1.0;
-            if (Hz > 0.1 && (absf(Hz/prev_Hz) <= 0.99 || absf(prev_Hz/Hz) <= 0.99)) {
-                SDL_Log("%1.2f", Hz);
-                prev_Hz = Hz;
+            cents = note.cents;
+            static char const* prev_letter = note.letter;
+            static int         prev_octave = note.octave;
+            if (note.letter != prev_letter || note.octave != prev_octave) {
+                SDL_Log("%s%d", note.letter, note.octave);
+                prev_letter = note.letter;
+                prev_octave = note.octave;
             }
         }
     }
+    draw_bar(context, cents);
     draw_text(context, buffer_hz,   context->win_w - 400, context->win_h - 180);
     draw_text(context, buffer_units,context->win_w - 400, context->win_h - 120);
     draw_text(context, buffer_note, context->win_w - 400, context->win_h - 60);
@@ -443,6 +475,7 @@ void visualize_from_mic(char const* record_device) {
             // TODO компилятор тут не ругается, что использована неинициализированная переменная, кек
             u64 record_end_pos = record.current_writen_pos.load();
             while (record_end_pos < DEFAULT_SAMPLES * 2) {
+                // это происходит только в начале
                 record_end_pos = record.current_writen_pos.load();
             }
             u64 record_read_pos = record_end_pos - DEFAULT_SAMPLES * 2;
