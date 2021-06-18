@@ -190,10 +190,13 @@ void data_to_points(SDL_Point* points /* size is window_w */, const float* data,
     }
 }
 
+static double draw_audio_coefficient = 1.0;
 void draw_audio(Context * context, Array<float> const& audio) {
+    if (draw_audio_coefficient > 1.0) draw_audio_coefficient = 1.0;
+    if (draw_audio_coefficient < 0.0) draw_audio_coefficient = 0.0;
     static SDL_Point points_orig [DEFAULT_SAMPLES]; // size = width просто я хочу сделать resize поэтому не выношу width в константы
     float const* samples_orig = audio.data;
-    data_to_points(points_orig, samples_orig, audio.size, context->win_w, context->win_h, MIDDLE);
+    data_to_points(points_orig, samples_orig, (int) (audio.size * draw_audio_coefficient), context->win_w, context->win_h, MIDDLE);
     SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255); SDL_RenderDrawLines(context->renderer, points_orig, context->win_w);
     SDL_SetRenderDrawColor(context->renderer, 0, 255, 0, 255); SDL_RenderDrawLine(context->renderer, 0, context->win_h/2, context->win_w, context->win_h/2);
 }
@@ -240,7 +243,7 @@ void draw_text(Context *context, char const* text, int x, int y) {
     TTF_SizeText(context->font, text, &message_rect.w, &message_rect.h);
 
     {
-        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(context->font, text, {128, 128, 128}); if (!surfaceMessage) {SDL_Log("error: %s", SDL_GetError()); return;}
+        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(context->font, text, {128, 128, 128}); if (!surfaceMessage) {SDL_Log("draw_text error: %s", SDL_GetError()); return;}
         defer {SDL_FreeSurface(surfaceMessage);};
 
         SDL_Texture* texture = SDL_CreateTextureFromSurface(context->renderer, surfaceMessage);   if (!texture) {SDL_Log("SDL_CreateTextureFromSurface: %s", SDL_GetError()); return;}
@@ -253,7 +256,7 @@ void draw_text(Context *context, char const* text, int x, int y) {
     message_rect.y = y;
 
     {
-        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(context->font, text, {255, 255, 255}); if (!surfaceMessage) {SDL_Log("error: %s", SDL_GetError()); return;}
+        SDL_Surface* surfaceMessage = TTF_RenderText_Solid(context->font, text, {255, 255, 255}); if (!surfaceMessage) {SDL_Log("draw_text error: %s", SDL_GetError()); return;}
         defer {SDL_FreeSurface(surfaceMessage);};
 
         SDL_Texture* texture = SDL_CreateTextureFromSurface(context->renderer, surfaceMessage);   if (!texture) {SDL_Log("SDL_CreateTextureFromSurface: %s", SDL_GetError()); return;}
@@ -375,7 +378,7 @@ void find_frequency_by_zcr(Context * context, Array<float> const& audio) {
             intervals_sum_diff[interval] += (current_zero_exact - prev_zero_exact);
         }
 
-        draw_vertical_line(context, 0x804040FF, (float) it_index / audio.size);
+        // draw_vertical_line(context, 0x804040FF, (float) it_index / audio.size);
         prev_zero = it_index;
         prev_zero_exact = current_zero_exact;
     }
@@ -505,7 +508,9 @@ void visualize_from_mic(char const* record_device) {
             if (event.type == SDL_QUIT) {
                 return;
             } else if (event.type == SDL_KEYUP) {
-                for (;;) {
+                if (event.key.keysym.sym == SDLK_UP) draw_audio_coefficient /= 1.5;
+                else if (event.key.keysym.sym == SDLK_DOWN) draw_audio_coefficient *= 1.5;
+                else for (;;) {
                     if (SDL_PollEvent(&event)) {
                         // TODO сделать версию с keydown
                         if (event.type == SDL_KEYUP) {
