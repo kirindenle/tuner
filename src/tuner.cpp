@@ -183,7 +183,7 @@ void data_to_points(SDL_Point* points /* size is window_w */, const float* data,
         int idx = int((float) x / window_w * size);
         float h = data[idx] * global_y_scale;
         if (abs_and_scale) h /= scale;
-                if (pos == TOP) points[x].y = int(h * window_h);
+             if (pos == TOP)    points[x].y = int(h * window_h);
         else if (pos == BOTTOM) points[x].y = int(window_h - h * window_h);
         else if (pos == MIDDLE) points[x].y = int((window_h/2) - h * (window_h/2));
         else points[x].y = window_h - 10;
