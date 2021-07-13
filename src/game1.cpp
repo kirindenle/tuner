@@ -50,7 +50,7 @@ using u64 = uint64_t;
 
 using u64atom = std::atomic_uint64_t;
 
-static constexpr int DEFAULT_SAMPLES = 4096;
+static constexpr int DEFAULT_SAMPLES = 16;
 static constexpr int RECORD_BUFFER_SIZE = DEFAULT_SAMPLES * 128;
 
 void set_default_spec(SDL_AudioSpec *spec);
@@ -158,10 +158,10 @@ int main(int const n_args, char ** const args) {
     if (!got_devices) return -1;
 
     // play_wav_from_drive("440Hz.wav", devices.play_device);
-    // play_from_mic(&devices);
+    play_from_mic(&devices);
 
 
-    visualize_from_mic(&devices);
+    // visualize_from_mic(&devices);
 
     // Audio_Wav audio_wav;
     // if (!open_wav(&audio_wav, "440Hz-20dB.wav")) return -1;
@@ -804,7 +804,7 @@ bool selection_mode(Context * context, Array<float> * audio, Audio_Wav * wav_raw
                 if (x > selected_x[1]) drag_idx = 1;
                 if (x < selected_x[0]) drag_idx = 0;
                 if (x - selected_x[0] < selected_x[1] - x) drag_idx = 0;
-                else                                   drag_idx = 1;
+                else                                       drag_idx = 1;
 
                 if (last_drag_idx == -1) last_drag_idx = drag_idx;
                 if (last_drag_idx != drag_idx) selected_x[last_drag_idx] = selected_x[drag_idx];
@@ -1437,7 +1437,12 @@ void FFT(float * io_real, float * io_img, int size, bool forward) {
 
 void play_from_mic(Devices* devices) {
     SDL_Log("play_from_mic(...)");
+    static u8 record_buffer[RECORD_BUFFER_SIZE];
     Record record;
+    record.record_buffer.data = record_buffer;
+    record.record_buffer.size = RECORD_BUFFER_SIZE;
+    record.record_buffer.capacity = RECORD_BUFFER_SIZE;
+
     Player_User_Data player_user_data;
     player_user_data.record = &record;
 

@@ -47,7 +47,7 @@ using s16 = int16_t;
 
 using u64atom = std::atomic_uint64_t;
 
-static constexpr int DEFAULT_SAMPLES = 4096;
+static constexpr int DEFAULT_SAMPLES = 512;
 static constexpr int RECORD_BUFFER_SIZE = DEFAULT_SAMPLES * 128;
 
 struct Devices {
@@ -378,7 +378,7 @@ void find_frequency_by_zcr(Context * context, Array<float> const& audio) {
             intervals_sum_diff[interval] += (current_zero_exact - prev_zero_exact);
         }
 
-        // draw_vertical_line(context, 0x804040FF, (float) it_index / audio.size);
+        draw_vertical_line(context, 0x804040FF, (float) it_index / audio.size);
         prev_zero = it_index;
         prev_zero_exact = current_zero_exact;
     }
